@@ -7,6 +7,7 @@ from django.conf import settings
 Overall – users will be objects of standard Django User model
 """
 
+
 class Product(Model):
     """
     Product model with name, price and quantity as positive number
