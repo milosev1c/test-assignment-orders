@@ -16,6 +16,9 @@ class ProductPaginator(PageNumberPagination):
 class ProductsView(ListAPIView):
     """
     Simple paginated products view
+    params:
+    @page - # of page
+    @limit - how many products will be displayed
     """
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
