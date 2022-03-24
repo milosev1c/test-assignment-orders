@@ -1,7 +1,11 @@
+from django.db import transaction
 from rest_framework.generics import ListAPIView
+from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import IsAuthenticated
 from assignment_orders.models import Product
-from assignment_orders.serializers import ProductSerializer
+from assignment_orders.serializers import ProductSerializer, OrderSerializer, PlaceOrderSerializer
+from django.http import JsonResponse
 
 
 class ProductPaginator(PageNumberPagination):
@@ -23,3 +27,17 @@ class ProductsView(ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     pagination_class = ProductPaginator
+
+
+class PlaceOrderView(APIView):
+    """
+    Endpoint to create order using existing session
+    """
+    serializer_class = PlaceOrderSerializer
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        data = self.serializer_class(data=request.data, context={"request": request})
+        data.is_valid()
+        res = data.save()
+        return JsonResponse(data=res, status=201)

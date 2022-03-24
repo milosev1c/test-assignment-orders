@@ -17,20 +17,20 @@ class Product(Model):
     quantity = PositiveIntegerField(verbose_name="Quantity in stock")
 
 
-class OrderPart(Model):
-    """
-    Order part, holds information about product and quantity in order
-    Field 'product_name' is fallback for displaying products removed from database
-    """
-    product = ForeignKey(to=Product, on_delete=SET_NULL, null=True, verbose_name="Product")
-    product_name = CharField(max_length=255, verbose_name="Product name")
-    quantity_in_order = PositiveIntegerField(verbose_name="Quantity in order")
-
-
 class Order(Model):
     """
     Order itself, has a link to user and M2M relation to order parts
     """
     user = ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=CASCADE, related_name="orders")
-    parts = ManyToManyField(OrderPart)
+
+
+class OrderPart(Model):
+    """
+    Order part, holds information about product and quantity in order
+    Field 'product_name' is fallback for displaying products removed from database
+    """
+    order = ForeignKey(to=Order, on_delete=CASCADE, related_name="parts", verbose_name="Order")
+    product = ForeignKey(to=Product, on_delete=SET_NULL, null=True, verbose_name="Product")
+    product_name = CharField(max_length=255, verbose_name="Product name")
+    quantity_in_order = PositiveIntegerField(verbose_name="Quantity in order")
 
