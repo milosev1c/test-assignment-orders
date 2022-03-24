@@ -1,9 +1,8 @@
-from django.db import transaction
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
-from assignment_orders.models import Product
+from assignment_orders.models import Product, Order
 from assignment_orders.serializers import ProductSerializer, OrderSerializer, PlaceOrderSerializer
 from django.http import JsonResponse
 
@@ -41,3 +40,17 @@ class PlaceOrderView(APIView):
         data.is_valid()
         res = data.save()
         return JsonResponse(data=res, status=201)
+
+
+class RetrieveUserOrders(APIView):
+    """
+    Session-based endpoint to retrieve a list of user's orders
+    """
+    permission_classes = [IsAuthenticated]
+    serializer_class = OrderSerializer
+
+    def get(self, request):
+        return JsonResponse(
+            self.serializer_class(Order.objects.filter(user=request.user), many=True).data,
+            safe=False
+        )
