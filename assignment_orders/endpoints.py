@@ -1,10 +1,11 @@
+from django.http import JsonResponse
 from rest_framework.generics import ListAPIView
-from rest_framework.views import APIView
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+
 from assignment_orders.models import Product, Order
 from assignment_orders.serializers import ProductSerializer, OrderSerializer, PlaceOrderSerializer
-from django.http import JsonResponse
 
 
 class ProductPaginator(PageNumberPagination):
@@ -37,7 +38,8 @@ class PlaceOrderView(APIView):
 
     def post(self, request):
         data = self.serializer_class(data=request.data, context={"request": request})
-        data.is_valid()
+        if not data.is_valid():
+            return JsonResponse(dict(data.errors), status=400)
         res = data.save()
         return JsonResponse(data=res, status=201)
 

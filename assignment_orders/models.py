@@ -1,7 +1,6 @@
-from django.db.models import Model, CharField, IntegerField, FloatField, PositiveIntegerField, ManyToManyField, \
-    ForeignKey, CASCADE, SET_NULL
-
 from django.conf import settings
+from django.db.models import Model, CharField, FloatField, PositiveIntegerField, ForeignKey, CASCADE, SET_NULL, \
+    DateTimeField
 
 """
 Overall – users will be objects of standard Django User model
@@ -22,6 +21,10 @@ class Order(Model):
     Order itself, has a link to user and M2M relation to order parts
     """
     user = ForeignKey(to=settings.AUTH_USER_MODEL, on_delete=CASCADE, related_name="orders")
+    created = DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = "-created",
 
 
 class OrderPart(Model):
@@ -33,4 +36,3 @@ class OrderPart(Model):
     product = ForeignKey(to=Product, on_delete=SET_NULL, null=True, verbose_name="Product")
     product_name = CharField(max_length=255, verbose_name="Product name")
     quantity_in_order = PositiveIntegerField(verbose_name="Quantity in order")
-

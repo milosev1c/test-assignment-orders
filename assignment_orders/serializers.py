@@ -1,21 +1,21 @@
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
 from rest_framework.serializers import ModelSerializer, Serializer
+
 from assignment_orders.models import Product, Order, OrderPart
-from django.conf import settings
 
 
 class ProductSerializer(ModelSerializer):
     """
     Products serializer
     """
+
     class Meta:
         model = Product
         fields = "__all__"
 
 
 class OrderPartSerializer(ModelSerializer):
-
     class Meta:
         model = OrderPart
         fields = "product", "quantity_in_order"
@@ -25,6 +25,7 @@ class FullOrderPartSerializer(ModelSerializer):
     """
     Serializer only for displaying order part
     """
+
     class Meta:
         model = OrderPart
         fields = "product", "quantity_in_order", "product_name"
@@ -48,12 +49,15 @@ class PlaceOrderSerializer(Serializer):
     and the number of products does not change.
     If there are any other errors - it raises validation error.
     """
+
     @transaction.atomic
     def create(self, validated_data):
         order = OrderSerializer(data={"user": self.context["request"].user.id})
         if not order.is_valid():
             raise ValidationError({"order": order.errors})
         order_obj = order.save()
+        if not self.context["request"].data["parts"]:
+            raise ValidationError({"parts": "Order must contain at least one product in 'parts' field"})
         new_parts = OrderPartSerializer(data=self.context["request"].data["parts"], many=True)
         new_parts.is_valid()
         for part in new_parts.validated_data:
