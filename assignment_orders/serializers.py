@@ -1,5 +1,8 @@
+from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import transaction
 from rest_framework.exceptions import ValidationError
+from rest_framework.fields import CharField
 from rest_framework.serializers import ModelSerializer, Serializer
 
 from assignment_orders.models import Product, Order, OrderPart
@@ -75,3 +78,57 @@ class PlaceOrderSerializer(Serializer):
             raise ValidationError({"order_part": new_parts.errors})
         new_parts.save()
         return order.data
+
+
+class FullUserSerializer(ModelSerializer):
+    """
+    Extended Serializer for User model
+    """
+    class Meta:
+        model = get_user_model()
+        exclude = ("password",)
+        readonly_field = "date_joined", "username", "last_login", "id"
+
+
+class BasicUserSerializer(ModelSerializer):
+    """
+    Basic serializer for users only
+    """
+    class Meta:
+        model = get_user_model()
+        exclude = ("password", "is_active", "is_staff", "is_superuser")
+        readonly_field = "date_joined", "username", "last_login", "groups", "user_permissions"
+
+
+class PasswordSerializer(Serializer):
+    username_validator = UnicodeUsernameValidator()
+    old_password = CharField(max_length=128, write_only=True)
+    new_password = CharField(max_length=128, write_only=True)
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
+        self.user = kwargs.pop("user")
+        super(PasswordSerializer, self).__init__(*args, **kwargs)
+
+    def validate(self, data):
+        old_password = data.get("old_password", None)
+        new_password = data.get("new_password", None)
+
+        user = authenticate(self.request, username=self.user.username, password=old_password)
+
+        if user is None:
+            raise ValidationError("Old password is not valid")
+
+        if not user.is_active:
+            raise ValidationError("This user has been deactivated")
+
+        user.set_password(new_password)
+        user.save()
+
+        return {
+            "user": user,
+            "email": user.email,
+            "username": user.username,
+        }
+
+

@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db.models import Model, CharField, FloatField, PositiveIntegerField, ForeignKey, CASCADE, SET_NULL, \
-    DateTimeField
+    DateTimeField, TextField, ImageField
 
 """
 Overall – users will be objects of standard Django User model
@@ -14,6 +14,8 @@ class Product(Model):
     name = CharField(max_length=255, verbose_name="Name")
     price = FloatField(verbose_name="Price")
     quantity = PositiveIntegerField(verbose_name="Quantity in stock")
+    photo = ImageField(upload_to="products/%Y/%m/%d/", blank=True)
+    description = TextField(blank=True)
 
 
 class Order(Model):
